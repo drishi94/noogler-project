@@ -19,8 +19,6 @@ function Ask(){
   // this.messageInput.addEventListener('keyup', buttonTogglingHandler);
   // this.messageInput.addEventListener('change', buttonTogglingHandler);
 
-
-
   this.initFirebase();
 }
 
@@ -77,17 +75,19 @@ Ask.prototype.displayQuestion = function(key, name, text){
   if(!div){
     var container = document.createElement('div');
     container.innerHTML = 
-    '<div class="question-container">' +
-      '<div class="spacing"><div class="pic"></div></div>' +
-      '<div class="question"></div>' +
-      '<div class="name"></div>' +
+    '<div class="question-container" align="left" style="margin-bottom: 100px;">' +
+      '<h2 class="question" style="margin-left:50px"></h2>' +
+      '<div class="name" style= "margin-left:50px"></div>' +
+      '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Comment </button>' +
+      '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: green; padding: 10px 10px; margin-left:45px;"> Upvote </button>' +
+
     '</div>';
     div = container.firstChild;
     div.setAttribute('id', key);
     this.questionList.appendChild(div);
   }
 
-  div.querySelector('.name').textContent = name;
+  div.querySelector('.name').textContent = "Asked by: " + name;
   var questionElement = div.querySelector('.question');
   questionElement.textContent = text;
   questionElement.innerHTML = questionElement.innerHTML.replace(/\n/g, '<br>');
