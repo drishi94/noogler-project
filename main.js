@@ -12,8 +12,8 @@ function Ask(){
   this.signOutButton.addEventListener('click', this.signOut.bind(this));
   this.questionForm.addEventListener('submit', this.saveQuestion.bind(this));
 
-  this.answerButton = document.getElementById('answer-button');
-  this.answerButton = addEventListener('click', this.introBox.bind(this));
+  // this.answerButton = document.getElementsByClassName('answer-button');
+  // this.answerButton = addEventListener('click', this.introBox.bind(this));
 
   // this.answerButton = addEventListener('click', this.introBox.bind(this));
     // Toggle for the button.
@@ -80,14 +80,16 @@ Ask.prototype.displayQuestion = function(key, name, text){
     '<div class="question-container" align="left" style="margin-bottom: 100px;">' +
       '<h2 class="question" style="margin-left:50px"></h2>' +
       '<div class="name" style= "margin-left:50px"></div>' +
-      '<button id="answer-button' + key + '" style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Answer </button>' +
+      '<div class="response-buttons>' + '<button class="answer-button" id="answer-button' + key + '" onClick="Ask.comment(this.id)" style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Answer </button>' +
       '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: green; padding: 10px 10px; margin-left:45px;"> Upvote </button>' +
-      '<div id = "answer-box-list"> </div>' +
+      '</div>' +
+      '<div id = "answer-box-list' + key + '"> </div>' +
 
     '</div>';
     div = container.firstChild;
     div.setAttribute('id', key);
-    this.questionList.appendChild(div);
+    var allQuestions = document.getElementById('questions');
+    this.questionList.insertBefore(div, allQuestions.firstChild);
   }
 
   div.querySelector('.name').textContent = "Asked by: " + name;
@@ -107,16 +109,52 @@ Ask.prototype.saveQuestion = function(){
   this.questionsRef.push({name: currentUser.displayName, text:this.questionInput.value})
 };
 
-Ask.prototype.introBox = function(){
-  this.answerBoxList = document.getElementById('answer-box-list');
+var commentID = 0;
+
+Ask.prototype.comment = function(id){
+  commentID = commentID + 1;
+  var scommentID = commentID.toString();
+  var key = id.substring(14, id.length);
+  var id2 = 'answer-box-list-' + key;
+  this.answerBoxList = document.getElementById(id2);
   var answerBox = document.createElement("div");
-  answerBox.innerHTML = '<div>' + '<form action="#">' + 'Comment: <input type="text">' + '</form>' + '</div>';
+  answerBox.innerHTML = '<div id="div-' + scommentID + '">' + '<form action="#" id="form-' + scommentID + '" class="comment-box">' + 
+  'Comment: <input style="width:500px;" type="text" id="comment-' + scommentID +'">' + 
+  '<input type="submit" value="Submit" onClick= "Ask.addComment(' + scommentID + ')"' + 
+  '</form>' + '</div>';
+
   this.answerBoxList.appendChild(answerBox);
-  // console.log(this.answerBox);
 
-}
+};
+
+Ask.prototype.addComment = function(x){
+  // console.log(x.value);
+  var currentUser = this.auth.currentUser;
+  if(currentUser){
+    var username = currentUser.displayName;
+  }
+  else{
+    var username = "Anonymous";
+  }
+  var commentID = 'comment-' + x;
+  var formID = 'form-' + x;
+  var commentText = document.getElementById(commentID).value;
+  var form = document.getElementById(formID);
+
+  var commentBlob = document.createElement('div');
+  commentBlob.innerHTML = '<div>  <font size="3" color="red"> Name: ' + currentUser.displayName + '</font>' + 
+  '<br>' +
+  '<font color="blue"> Answer: </font>' + commentText +
+  '</div>';
+  // var commentBlob = '<div> Name:' + currentUser.displayName + '</div>';
+
+  form.insertBefore(commentBlob, form.firstChild);
 
 
+};
+
+//answer-box-list-KPM9oKytHHxTpCR7iJ-
+//answer-button-KPM9oKytHHxTpCR7iJ-
 // Ask.prototype.saveAnswer = function(){
 //   var currentUser = this.auth.currentUser;
 //   this.answersRef.push({name: currentUser.displayName, text: this.answerInput.value});

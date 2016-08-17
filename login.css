@@ -1,5 +1,10 @@
 .question-container {
   border: 1px solid green ;
-  border-radius: 50px;
-  margin-right:200px;
+  border-radius: 45px;
+  margin-right:170px;
+}
+
+.comment-box{
+	margin-left: 50px;
+	margin-bottom: 40px;
 }
