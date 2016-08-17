@@ -2,13 +2,47 @@
 <html lang="en">
 <head>
 
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.orange-indigo.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+
+  <button id="sign-out" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--blue">
+  Sign-out </button>
+
+  <script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyDdb5wjqpWQ3mXre5iHh_pWg0ckZXHFFh0",
+    authDomain: "noogler-project-cb585.firebaseapp.com",
+    databaseURL: "https://noogler-project-cb585.firebaseio.com",
+    storageBucket: "noogler-project-cb585.appspot.com",
+  };
+  firebase.initializeApp(config);
+</script>
+
 </head>
 
 
 <body>
 
-<h1>You're logged in!</h1>
+<!-- <h1>You're logged in!</h1>
+ -->
+<form id="message-form" action="#" align="center">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+      <input class="mdl-textfield__input" type="text" id="message">
+      <label class="mdl-textfield__label" for="message">What's your Question?</label>
+    </div>
 
+	<button id="submit" disabled type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+	  Ask
+	</button>
+</form>
+
+
+
+<script src="main.js"> </script>
 </body>
 
 </html>
