@@ -1,20 +1,19 @@
-
-
 function Ask(){
-  this.checkSetup();
-
   this.questionList = document.getElementById('questions')
   this.questionForm = document.getElementById('question-form');
-	this.signOutButton = document.getElementById('sign-out');
+  this.signOutButton = document.getElementById('sign-out');
   this.submitButton = document.getElementById('submit');
-	this.questionInput = document.getElementById('question');
-  
+  this.questionInput = document.getElementById('question');
 
   //Add Event Handlers for Sign out and Submit Message
 
   this.signOutButton.addEventListener('click', this.signOut.bind(this));
   this.questionForm.addEventListener('submit', this.saveQuestion.bind(this));
 
+  // this.answerButton = document.getElementsByClassName('answer-button');
+  // this.answerButton = addEventListener('click', this.introBox.bind(this));
+
+  // this.answerButton = addEventListener('click', this.introBox.bind(this));
     // Toggle for the button.
   // var buttonTogglingHandler = this.toggleButton.bind(this);
   // this.messageInput.addEventListener('keyup', buttonTogglingHandler);
@@ -47,6 +46,7 @@ Ask.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
         console.log("user logged in!");
         this.loadQuestions();
+        this.loadAnswers();
   } else { // User is signed out!
     // Hide user's profile and sign-out button.
     // Show sign-in button.
@@ -61,13 +61,12 @@ Ask.prototype.loadQuestions = function() {
   this.questionsRef = this.database.ref('questions');
   //remove all other listeners
   this.questionsRef.off();
-
   var setMessage = function(data){
     var val = data.val();
     this.displayQuestion(data.key, val.name, val.text);
   }.bind(this);
-  this.questionsRef.limitToLast(12).on('child_added', setMessage);
-  this.questionsRef.limitToLast(12).on('child_changed', setMessage);
+  this.questionsRef.limitToLast(20).on('child_added', setMessage);
+  this.questionsRef.limitToLast(20).on('child_changed', setMessage);
   };
 
 
@@ -79,12 +78,16 @@ Ask.prototype.displayQuestion = function(key, name, text){
     '<div class="question-container" align="left" style="margin-bottom: 100px;">' +
       '<h2 class="question" style="margin-left:50px"></h2>' +
       '<div class="name" style= "margin-left:50px"></div>' +
-      '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Comment </button>' +
+      '<div class="response-buttons>' + '<button class="answer-button" id="answer-button' + key + '" onClick="Ask.comment(this.id)" style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Answer </button>' +
       '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: green; padding: 10px 10px; margin-left:45px;"> Upvote </button>' +
+      '</div>' +
+      '<div id = "answer-box-list' + key + '"> </div>' +
+
     '</div>';
     div = container.firstChild;
     div.setAttribute('id', key);
-    this.questionList.appendChild(div);
+    var allQuestions = document.getElementById('questions');
+    this.questionList.insertBefore(div, allQuestions.firstChild);
   }
 
   div.querySelector('.name').textContent = "Asked by: " + name;
@@ -104,27 +107,118 @@ Ask.prototype.saveQuestion = function(){
   this.questionsRef.push({name: currentUser.displayName, text:this.questionInput.value})
 };
 
-Ask.prototype.checkSetup = function() {
-  if (!window.firebase || !(firebase.app instanceof Function) || !window.config) {
-    window.alert('You have not configured and imported the Firebase SDK. ' +
-        'Make sure you go through the codelab setup instructions.');
-  } else if (config.storageBucket === '') {
-    window.alert('Your Firebase Storage bucket has not been enabled. Sorry about that. This is ' +
-        'actually a Firebase bug that occurs rarely. ' +
-        'Please go and re-generate the Firebase initialisation snippet (step 4 of the codelab) ' +
-        'and make sure the storageBucket attribute is not empty. ' +
-        'You may also need to visit the Storage tab and paste the name of your bucket which is ' +
-        'displayed there.');
-  }
+Ask.prototype.comment = function(id){
+  console.log("in comment");
+  var commentRef = this.database.ref('commentID');
+  var commentIDval = 0;
+  commentRef.on('value', function(data) {
+    commentIDval = data.val();
+  });
+  commentIDval_update = commentIDval + 1; 
+  this.database.ref('commentID').set(commentIDval_update);
+
+  var key = id.substring(14, id.length);
+
+  var scommentID = commentIDval_update.toString() + '-.-' + key;
+
+  var id2 = 'answer-box-list-' + key;
+  this.answerBoxList = document.getElementById(id2);
+  var answerBox = document.createElement("div");
+  console.log("the next line gives errors");
+  answerBox.innerHTML = '<div id="div-' + scommentID + '">' + '<form action="#" id="form-comment-' + scommentID + '" class="comment-box">' + 
+  'Comment: <input style="width:500px;" type="text" id="comment-' + scommentID +'">' + 
+  '<input type="submit" value="Submit" onClick= "Ask.addComment(\'' + scommentID + '\')"' + 
+  '</form>' + '</div>';
+
+  this.answerBoxList.appendChild(answerBox);
+
 };
 
+Ask.prototype.addComment = function(x){
+  console.log("addComment called!");
+  var currentUser = this.auth.currentUser;
+  if(currentUser){
+    var username = currentUser.displayName;
+  }
+  else{
+    var username = "Anonymous";
+  }
+  console.log(x);
+  console.log("made it here")
+  var cid_key = x.split("-.-");
+  console.log(cid_key);
+  var y = cid_key[0];
+  var key = cid_key[1];
 
-// Ask.prototype.signOut = function() {
-//   	window.location.href = "index.html";
+  var commentID = 'comment-' + x;
+  var formID = 'form-comment-' + y;
+  console.log(commentID);
+  var commentText = document.getElementById(commentID).value;
 
-  // this.auth.signOut();
+  this.answersRef.push({name: username, text: commentText, commentID: x, k: key})
+  this.displayComment(username, commentText, x, key);
+};
+
+Ask.prototype.displayComment = function(name, commentText, x, key){
+
+  var postedCommentID = 'posted-' + x;
+
+  if (document.getElementById(postedCommentID)) {
+    var oldComment = document.getElementById(postedCommentID)
+    oldComment.innerHTML = '<div align="left" id="' + postedCommentID + '">  <font size="3" color="red"> Name: ' + name + '</font>' + 
+  '<br>' +
+  '<font color="blue"> Answer: </font>' + commentText +
+  '</div>';
+  }
+  else{
+  var commentID = 'comment-' + x;
+  var formID = 'form-comment-' + x;
+  var commentBlob = document.createElement('div');
+  // var form = document.getElementById(formID);
+  var divID = "answer-button-" + key;
+  console.log("divID is : ")
+  console.log(divID);
+  var div2 = document.getElementById(divID)
+  commentBlob.innerHTML = '<div align="left" id="' + postedCommentID + '">  <font size="3" color="red"> Name: ' + name + '</font>' + 
+  '<br>' +
+  '<font color="blue"> Answer: </font>' + commentText +
+  '</div>';
+  // var commentBlob = '<div> Name:' + currentUser.displayName + '</div>';
+  // form.insertBefore(commentBlob, form.firstChild);
+  div2.appendChild(commentBlob);
+}
+};
+
+Ask.prototype.loadAnswers = function(){
+  console.log("load answers called!");
+  this.answersRef = this.database.ref('answers');
+  this.answersRef.off();
+  var setComment = function(data){
+    console.log("set comment called!");
+    var val = data.val();
+    this.displayComment(val.name, val.text, val.commentID, val.k)
+  }.bind(this);
+  this.answersRef.limitToLast(20).on('child_added', setComment);
+  this.answersRef.limitToLast(20).on('child_changed', setComment);
+
+};
+
+// Ask.prototype.saveAnswer = function(userName, commentText, cid){
+//   var currentUser = this.auth.currentUser;
+//   this.answersRef.push({name: name, text: commentText, commentID: cid})
 // }
+
+//answer-box-list-KPM9oKytHHxTpCR7iJ-
+//answer-button-KPM9oKytHHxTpCR7iJ-
+// Ask.prototype.saveAnswer = function(){
+//   var currentUser = this.auth.currentUser;
+//   this.answersRef.push({name: currentUser.displayName, text: this.answerInput.value});
+// }
+
 
 window.onload = function() {
   window.Ask = new Ask();
 };
+
+//The problem is that set comment is being called everytime you comment! Not just on Load Answers. 
+//Form is Null because when loadAnswers is called there is no form!
