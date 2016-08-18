@@ -8,6 +8,7 @@ function Ask(){
 	this.signOutButton = document.getElementById('sign-out');
   this.submitButton = document.getElementById('submit');
 	this.questionInput = document.getElementById('question');
+  
 
   //Add Event Handlers for Sign out and Submit Message
 
@@ -80,7 +81,6 @@ Ask.prototype.displayQuestion = function(key, name, text){
       '<div class="name" style= "margin-left:50px"></div>' +
       '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Comment </button>' +
       '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: green; padding: 10px 10px; margin-left:45px;"> Upvote </button>' +
-
     '</div>';
     div = container.firstChild;
     div.setAttribute('id', key);
@@ -96,8 +96,6 @@ Ask.prototype.displayQuestion = function(key, name, text){
   this.questionList.scrollTop = this.questionList.scrollHeight;
   this.questionInput.focus();
 };
-
-
 
 
 Ask.prototype.saveQuestion = function(){
@@ -119,7 +117,6 @@ Ask.prototype.checkSetup = function() {
         'displayed there.');
   }
 };
-
 
 
 // Ask.prototype.signOut = function() {
