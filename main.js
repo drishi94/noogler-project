@@ -22,10 +22,6 @@ function Ask(){
   this.initFirebase();
 }
 
-function inputBlur(i){
-    if(i.value==""){ i.value=i.defaultValue; i.style.color="#888"; }
-}
-
 Ask.QUESTION_TEMPLATE =
     '<div class="question-container">' +
       '<div class="message"></div>' +
@@ -48,21 +44,20 @@ Ask.prototype.signOut = function() {
 
 Ask.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
-        console.log("user logged in!");
         this.loadQuestions();
         this.loadAnswers();
   } else { // User is signed out!
-    // Hide user's profile and sign-out button.
-    // Show sign-in button.
-    // this.signInButton.removeAttribute('hidden');
     window.location.href = "index.html";
   }
 };
 
 Ask.prototype.loadQuestions = function() {
-
-  //referencing messages/database
-  this.questionsRef = this.database.ref('questions');
+  console.log("in load questions");
+  var currentUser = this.auth.currentUser;
+  var email = currentUser.email;
+  var domain = email.split("@")[1].split(".")[0];
+  var dbRef = '/' + domain + '/' + 'questions';
+  this.questionsRef = this.database.ref(dbRef);
   //remove all other listeners
   this.questionsRef.off();
   var setMessage = function(data){
@@ -112,14 +107,17 @@ Ask.prototype.saveQuestion = function(){
 };
 
 Ask.prototype.comment = function(id){
-  console.log("in comment");
-  var commentRef = this.database.ref('commentID');
+  var currentUser = this.auth.currentUser;
+  var email = currentUser.email;
+  var domain = email.split("@")[1].split(".")[0];
+  var dbRef = '/' + domain + '/' + 'commentID';
+  var commentRef = this.database.ref(dbRef);
   var commentIDval = 0;
   commentRef.on('value', function(data) {
     commentIDval = data.val();
   });
   commentIDval_update = commentIDval + 1; 
-  this.database.ref('commentID').set(commentIDval_update);
+  this.database.ref(dbRef).set(commentIDval_update);
 
   var key = id.substring(14, id.length);
 
@@ -128,7 +126,6 @@ Ask.prototype.comment = function(id){
   var id2 = 'answer-box-list-' + key;
   this.answerBoxList = document.getElementById(id2);
   var answerBox = document.createElement("div");
-  console.log("the next line gives errors");
   answerBox.innerHTML = '<div id="div-' + scommentID + '">' + '<form action="#" id="form-comment-' + scommentID + '" class="comment-box">' + 
   'Comment: <input style="width:500px;" type="text" id="comment-' + scommentID +'">' + 
   '<input type="submit" value="Submit" onClick= "Ask.addComment(\'' + scommentID + '\')"' + 
@@ -139,7 +136,6 @@ Ask.prototype.comment = function(id){
 };
 
 Ask.prototype.addComment = function(x){
-  console.log("addComment called!");
   var currentUser = this.auth.currentUser;
   if(currentUser){
     var username = currentUser.displayName;
@@ -147,16 +143,12 @@ Ask.prototype.addComment = function(x){
   else{
     var username = "Anonymous";
   }
-  console.log(x);
-  console.log("made it here")
   var cid_key = x.split("-.-");
-  console.log(cid_key);
   var y = cid_key[0];
   var key = cid_key[1];
 
   var commentID = 'comment-' + x;
   var formID = 'form-comment-' + y;
-  console.log(commentID);
   var commentText = document.getElementById(commentID).value;
 
   this.answersRef.push({name: username, text: commentText, commentID: x, k: key})
@@ -180,8 +172,7 @@ Ask.prototype.displayComment = function(name, commentText, x, key){
   var commentBlob = document.createElement('div');
   // var form = document.getElementById(formID);
   var divID = "answer-button-" + key;
-  console.log("divID is : ")
-  console.log(divID);
+
   var div2 = document.getElementById(divID)
   commentBlob.innerHTML = '<div align="left" id="' + postedCommentID + '">  <font size="3" color="red"> Name: ' + name + '</font>' + 
   '<br>' +
@@ -194,11 +185,16 @@ Ask.prototype.displayComment = function(name, commentText, x, key){
 };
 
 Ask.prototype.loadAnswers = function(){
-  console.log("load answers called!");
-  this.answersRef = this.database.ref('answers');
+  var currentUser = this.auth.currentUser;
+  var email = currentUser.email;
+  var domain = email.split("@")[1].split(".")[0];
+  var dbRef = '/' + domain + '/' + 'answers';
+
+  //referencing messages/database
+
+  this.answersRef = this.database.ref(dbRef);
   this.answersRef.off();
   var setComment = function(data){
-    console.log("set comment called!");
     var val = data.val();
     this.displayComment(val.name, val.text, val.commentID, val.k)
   }.bind(this);
