@@ -48,6 +48,7 @@ Ask.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
         console.log("user logged in!");
         this.loadQuestions();
+        this.loadAnswers();
   } else { // User is signed out!
     // Hide user's profile and sign-out button.
     // Show sign-in button.
@@ -66,7 +67,6 @@ Ask.prototype.loadQuestions = function() {
     var val = data.val();
     this.displayQuestion(data.key, val.name, val.text);
   }.bind(this);
-  console.log(this.questionsRef.val);
   this.questionsRef.limitToLast(20).on('child_added', setMessage);
   this.questionsRef.limitToLast(20).on('child_changed', setMessage);
   };
@@ -109,16 +109,22 @@ Ask.prototype.saveQuestion = function(){
   this.questionsRef.push({name: currentUser.displayName, text:this.questionInput.value})
 };
 
-var commentID = 0;
-
 Ask.prototype.comment = function(id){
-  commentID = commentID + 1;
-  var scommentID = commentID.toString();
+  console.log("in comment");
+  var commentRef = this.database.ref('commentID');
+  var commentIDval = 0;
+  commentRef.on('value', function(data){
+    commentIDval = data.val();
+  });
+  commentIDval_update = commentIDval + 1; 
+  this.database.ref('commentID').set(commentIDval_update);
+
+  var scommentID = commentIDval_update.toString();
   var key = id.substring(14, id.length);
   var id2 = 'answer-box-list-' + key;
   this.answerBoxList = document.getElementById(id2);
   var answerBox = document.createElement("div");
-  answerBox.innerHTML = '<div id="div-' + scommentID + '">' + '<form action="#" id="form-' + scommentID + '" class="comment-box">' + 
+  answerBox.innerHTML = '<div id="div-' + scommentID + '">' + '<form action="#" id="form-comment-' + scommentID + '" class="comment-box">' + 
   'Comment: <input style="width:500px;" type="text" id="comment-' + scommentID +'">' + 
   '<input type="submit" value="Submit" onClick= "Ask.addComment(' + scommentID + ')"' + 
   '</form>' + '</div>';
@@ -128,7 +134,7 @@ Ask.prototype.comment = function(id){
 };
 
 Ask.prototype.addComment = function(x){
-  // console.log(x.value);
+  console.log("addComment called!");
   var currentUser = this.auth.currentUser;
   if(currentUser){
     var username = currentUser.displayName;
@@ -136,22 +142,55 @@ Ask.prototype.addComment = function(x){
   else{
     var username = "Anonymous";
   }
-  var commentID = 'comment-' + x;
-  var formID = 'form-' + x;
-  var commentText = document.getElementById(commentID).value;
-  var form = document.getElementById(formID);
 
+  var commentID = 'comment-' + x;
+  var formID = 'form-comment-' + x;
+  var commentText = document.getElementById(commentID).value;
+
+  this.answersRef.push({name: username, text: commentText, commentID: x})
+  this.displayComment(username, commentText, x);
+};
+
+Ask.prototype.displayComment = function(name, commentText, x){
+
+  var postedCommentID = 'posted-' + x;
+
+  if (document.getElementById(postedCommentID)) {
+    console.log("comment already exists") 
+  }
+  else{
+  var commentID = 'comment-' + x;
+  var formID = 'form-comment-' + x;
   var commentBlob = document.createElement('div');
-  commentBlob.innerHTML = '<div>  <font size="3" color="red"> Name: ' + currentUser.displayName + '</font>' + 
+  var form = document.getElementById(formID);
+  commentBlob.innerHTML = '<div id="' + postedCommentID + '">  <font size="3" color="red"> Name: ' + name + '</font>' + 
   '<br>' +
   '<font color="blue"> Answer: </font>' + commentText +
   '</div>';
   // var commentBlob = '<div> Name:' + currentUser.displayName + '</div>';
-
+  console.log(formID);
   form.insertBefore(commentBlob, form.firstChild);
+}
+};
 
+Ask.prototype.loadAnswers = function(){
+  console.log("load answers called!");
+  this.answersRef = this.database.ref('answers');
+  this.answersRef.off();
+  var setComment = function(data){
+    console.log("set comment called!");
+    var val = data.val();
+    this.displayComment(val.name, val.text, val.commentID)
+  }.bind(this);
+  this.answersRef.limitToLast(20).on('child_added', setComment);
+  // this.answersRef.limitToLast(20).on('child_changed', setComment);
 
 };
+
+// Ask.prototype.saveAnswer = function(userName, commentText, cid){
+//   var currentUser = this.auth.currentUser;
+//   this.answersRef.push({name: name, text: commentText, commentID: cid})
+// }
 
 //answer-box-list-KPM9oKytHHxTpCR7iJ-
 //answer-button-KPM9oKytHHxTpCR7iJ-
@@ -164,3 +203,6 @@ Ask.prototype.addComment = function(x){
 window.onload = function() {
   window.Ask = new Ask();
 };
+
+//The problem is that set comment is being called everytime you comment! Not just on Load Answers. 
+//Form is Null because when loadAnswers is called there is no form!
