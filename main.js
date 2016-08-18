@@ -22,6 +22,10 @@ function Ask(){
   this.initFirebase();
 }
 
+function inputBlur(i){
+    if(i.value==""){ i.value=i.defaultValue; i.style.color="#888"; }
+}
+
 Ask.QUESTION_TEMPLATE =
     '<div class="question-container">' +
       '<div class="message"></div>' +
