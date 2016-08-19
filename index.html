@@ -4,6 +4,9 @@
 
   <meta charset="utf-8">
 
+  <br>
+  <br>
+  <br>
   <title>Dev Overflow</title>
 
   <!-- Initialize Firebase -->
@@ -53,6 +56,33 @@
 	<h1 align="center" style="color:white;font-size:300%;"> Dev Overflow </h1>
 	<h2 align="center" style="color: white;"> An Internal Q and A Platform </h2>
 	<div id="firebaseui-auth-container"></div>
-</body>
+
+<!-- Add a background video -->
+
+<video poster="Team-work.jpg" id="bgvid" playsinline autoplay muted>
+  <!-- WCAG general accessibility recommendation is that media such as background video play through only once. Loop turned on for the purposes of illustration; if removed, the end of the video will fade in the same way created by pressing the "Pause" button  -->
+ <source src="Team-work.wbm" type="video/webm">
+<source src="Team-work.mp4" type="video/mp4">
+</video>
+
+
+<script>
+var vid = document.getElementById("bgvid");
+
+function vidFade() {
+  vid.classList.add("stopfade");
+}
+
+vid.addEventListener('ended', function()
+{
+// only functional if "loop" is removed 
+vid.pause();
+// to capture IE10
+vidFade();
+}); 
+
+
+
+</script>
 
 </html>
