@@ -62,6 +62,7 @@ Ask.prototype.loadQuestions = function() {
   var currentUser = this.auth.currentUser;
   var email = currentUser.email;
   var domain = email.split("@")[1].split(".")[0];
+  console.log(domain);
   var dbRef = '/' + domain + '/' + 'questions';
   this.questionsRef = this.database.ref(dbRef);
   //remove all other listeners
