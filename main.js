@@ -13,6 +13,12 @@ function Ask(){
   // this.answerButton = document.getElementsByClassName('answer-button');
   // this.answerButton = addEventListener('click', this.introBox.bind(this));
 
+  //Image Stuff:
+
+  this.submitImageButton = document.getElementById('submitImage');
+  this.imageForm = document.getElementById('image-form');
+  this.mediaCapture = document.getElementById('mediaCapture');
+
   // this.answerButton = addEventListener('click', this.introBox.bind(this));
     // Toggle for the button.
   // var buttonTogglingHandler = this.toggleButton.bind(this);
@@ -202,6 +208,17 @@ Ask.prototype.loadAnswers = function(){
   this.answersRef.limitToLast(20).on('child_changed', setComment);
 
 };
+
+
+Ask.prototype.saveImageMessage = function(event){
+  var fyle = event.target.files[0];
+  this.imageForm.reset();
+  var currentUser = this.auth.currentUser;
+  this.questionsRef.push({name: currentUser.displayName}).then()
+
+}
+
+
 
 // Ask.prototype.saveAnswer = function(userName, commentText, cid){
 //   var currentUser = this.auth.currentUser;
