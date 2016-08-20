@@ -85,7 +85,6 @@ Ask.prototype.displayQuestion = function(key, name, text){
       '<h2 class="question" style="margin-left:50px"></h2>' +
       '<div class="name" style= "margin-left:50px"></div>' +
       '<div class="response-buttons>' + '<button class="answer-button" id="answer-button' + key + '" onClick="Ask.comment(this.id)" style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Answer </button>' +
-      '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: green; padding: 10px 10px; margin-left:45px;"> Upvote </button>' +
       '</div>' +
       '<div id = "answer-box-list' + key + '"> </div>' +
 
@@ -170,8 +169,11 @@ Ask.prototype.displayComment = function(name, commentText, x, key){
     var oldComment = document.getElementById(postedCommentID)
     oldComment.innerHTML = '<div align="left" id="' + postedCommentID + '">  <font size="3" color="red"> Name: ' + name + '</font>' + 
   '<br>' +
-  '<font color="blue"> Answer: </font>' + commentText +
+  '<font color="blue"> Comment: </font>' + commentText +
   '</div>';
+  // var oldAnswerButton = document.getElementById('answer-button-' + key);
+  // oldAnswerButton.innerHTML = '<button class="answer-button" id="answer-button' + key + '" onClick="Ask.comment(this.id)" style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Edit Response </button>';
+
   }
   else{
   var commentID = 'comment-' + x;
