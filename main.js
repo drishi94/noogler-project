@@ -19,6 +19,11 @@ function Ask(){
   this.imageForm = document.getElementById('image-form');
   this.mediaCapture = document.getElementById('mediaCapture');
 
+  this.submitImageButton.addEventListener('click', function() {
+  this.mediaCapture.click();
+  }.bind(this));
+  this.mediaCapture.addEventListener('change', this.saveImageMessage.bind(this));
+
   // this.answerButton = addEventListener('click', this.introBox.bind(this));
     // Toggle for the button.
   // var buttonTogglingHandler = this.toggleButton.bind(this);
@@ -62,37 +67,54 @@ Ask.prototype.loadQuestions = function() {
   var currentUser = this.auth.currentUser;
   var email = currentUser.email;
   var domain = email.split("@")[1].split(".")[0];
+  console.log(domain);
   var dbRef = '/' + domain + '/' + 'questions';
   this.questionsRef = this.database.ref(dbRef);
   //remove all other listeners
   this.questionsRef.off();
   var setMessage = function(data){
     var val = data.val();
-    this.displayQuestion(data.key, val.name, val.text);
+    this.displayQuestion(data.key, val.name, val.text, val.imageUrl);
   }.bind(this);
   this.questionsRef.limitToLast(20).on('child_added', setMessage);
   this.questionsRef.limitToLast(20).on('child_changed', setMessage);
   };
 
 
-Ask.prototype.displayQuestion = function(key, name, text){
+Ask.prototype.displayQuestion = function(key, name, text, imageUri){
   var div = document.getElementById(key);
+  // console.log(imageUri);
   if(!div){
     var container = document.createElement('div');
     container.innerHTML = 
-    '<div class="question-container" align="left" style="margin-bottom: 100px;">' +
+    '<div class="question-container" align="left" style="margin-bottom: 50px;">' +
       '<h2 class="question" style="margin-left:50px"></h2>' +
       '<div class="name" style= "margin-left:50px"></div>' +
       '<div class="response-buttons>' + '<button class="answer-button" id="answer-button' + key + '" onClick="Ask.comment(this.id)" style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Answer </button>' +
-      '<button style="border:none; background-color: white; text-align: center; font-size: 16px; color: green; padding: 10px 10px; margin-left:45px;"> Upvote </button>' +
       '</div>' +
       '<div id = "answer-box-list' + key + '"> </div>' +
-
     '</div>';
     div = container.firstChild;
     div.setAttribute('id', key);
     var allQuestions = document.getElementById('questions');
     this.questionList.insertBefore(div, allQuestions.firstChild);
+  }
+
+    if(imageUri){
+    var image = document.createElement('img');
+    image.addEventListener('load', function() {
+      this.questionList.scrollTop = this.questionList.scrollHeight;
+    }.bind(this));
+    // this.setImageUrl(imageUri, image);
+    // image.innerHTML = '<img src="' + imageUri + '"</img>';
+    this.setImageUrl(imageUri, image);
+    console.log(image);
+    image.style.align = "middle";
+    // questionElement.appendChild(image);
+    questionBox = document.getElementById(key);
+    // questionBox.appendChild(image);
+    var allQuestions = document.getElementById('questions');
+    this.questionList.insertBefore(image, allQuestions.firstChild);
   }
 
   div.querySelector('.name').textContent = "Asked by: " + name;
@@ -103,6 +125,7 @@ Ask.prototype.displayQuestion = function(key, name, text){
   setTimeout(function() { div.classList.add('visible')}, 1);
   this.questionList.scrollTop = this.questionList.scrollHeight;
   this.questionInput.focus();
+
 };
 
 
@@ -169,8 +192,11 @@ Ask.prototype.displayComment = function(name, commentText, x, key){
     var oldComment = document.getElementById(postedCommentID)
     oldComment.innerHTML = '<div align="left" id="' + postedCommentID + '">  <font size="3" color="red"> Name: ' + name + '</font>' + 
   '<br>' +
-  '<font color="blue"> Answer: </font>' + commentText +
+  '<font color="blue"> Comment: </font>' + commentText +
   '</div>';
+  // var oldAnswerButton = document.getElementById('answer-button-' + key);
+  // oldAnswerButton.innerHTML = '<button class="answer-button" id="answer-button' + key + '" onClick="Ask.comment(this.id)" style="border:none; background-color: white; text-align: center; font-size: 16px; color: blue; padding: 10px 10px; margin-left:45px;"> Edit Response </button>';
+
   }
   else{
   var commentID = 'comment-' + x;
@@ -202,7 +228,7 @@ Ask.prototype.loadAnswers = function(){
   this.answersRef.off();
   var setComment = function(data){
     var val = data.val();
-    this.displayComment(val.name, val.text, val.commentID, val.k)
+    this.displayComment(val.name, val.text, val.commentID, val.k, val.imageUrl)
   }.bind(this);
   this.answersRef.limitToLast(20).on('child_added', setComment);
   this.answersRef.limitToLast(20).on('child_changed', setComment);
@@ -210,13 +236,49 @@ Ask.prototype.loadAnswers = function(){
 };
 
 
-Ask.prototype.saveImageMessage = function(event){
-  var fyle = event.target.files[0];
-  this.imageForm.reset();
-  var currentUser = this.auth.currentUser;
-  this.questionsRef.push({name: currentUser.displayName}).then()
+Ask.prototype.saveImageMessage = function(event) {
+  var file = event.target.files[0];
 
-}
+  // Clear the selection in the file picker input.
+  this.imageForm.reset();
+
+  // Check if the file is an image.
+  // Check if the user is signed-in
+
+    // We add a message with a loading icon that will get updated with the shared image.
+  var currentUser = this.auth.currentUser;
+  this.questionsRef.push({
+    name: currentUser.displayName,
+  }).then(function(data) {
+
+    // Upload the image to Firebase Storage.
+    var uploadTask = this.storage.ref(currentUser.uid + '/' + Date.now() + '/' + file.name)
+        .put(file, {'contentType': file.type});
+    // Listen for upload completion.
+    uploadTask.on('state_changed', null, function(error) {
+      console.error('There was an error uploading a file to Firebase Storage:', error);
+    }, function() {
+
+      // Get the file's Storage URI and update the chat message placeholder.
+      var filePath = uploadTask.snapshot.metadata.fullPath;
+      data.update({imageUrl: this.storage.ref(filePath).toString()});
+    }.bind(this));
+  }.bind(this));
+
+};
+
+
+Ask.prototype.setImageUrl = function(imageUri, imgElement) {
+  imgElement.src = imageUri;
+  // TODO(DEVELOPER): If image is on Firebase Storage, fetch image URL and set img element's src.
+  if (imageUri.startsWith('gs://')) {
+    this.storage.refFromURL(imageUri).getMetadata().then(function(metadata) {
+      imgElement.src = metadata.downloadURLs[0];
+    });
+  } else {
+    imgElement.src = imageUri;
+  }
+};
 
 
 
