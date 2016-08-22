@@ -114,7 +114,8 @@ Ask.prototype.displayQuestion = function(key, name, text, imageUri){
     questionBox = document.getElementById(key);
     // questionBox.appendChild(image);
     var allQuestions = document.getElementById('questions');
-    this.questionList.insertBefore(image, allQuestions.firstChild);
+    div.insertBefore(image, div.firstChild);
+    // this.questionList.insertBefore(image, allQuestions.firstChild);
   }
 
   div.querySelector('.name').textContent = "Asked by: " + name;
@@ -238,7 +239,7 @@ Ask.prototype.loadAnswers = function(){
 
 Ask.prototype.saveImageMessage = function(event) {
   var file = event.target.files[0];
-
+  console.log("i got in here 1");
   // Clear the selection in the file picker input.
   this.imageForm.reset();
 
@@ -254,16 +255,21 @@ Ask.prototype.saveImageMessage = function(event) {
     // Upload the image to Firebase Storage.
     var uploadTask = this.storage.ref(currentUser.uid + '/' + Date.now() + '/' + file.name)
         .put(file, {'contentType': file.type});
+
+
     // Listen for upload completion.
     uploadTask.on('state_changed', null, function(error) {
       console.error('There was an error uploading a file to Firebase Storage:', error);
     }, function() {
+
 
       // Get the file's Storage URI and update the chat message placeholder.
       var filePath = uploadTask.snapshot.metadata.fullPath;
       data.update({imageUrl: this.storage.ref(filePath).toString()});
     }.bind(this));
   }.bind(this));
+
+
 
 };
 
@@ -272,6 +278,25 @@ Ask.prototype.setImageUrl = function(imageUri, imgElement) {
   imgElement.src = imageUri;
   // TODO(DEVELOPER): If image is on Firebase Storage, fetch image URL and set img element's src.
   if (imageUri.startsWith('gs://')) {
+
+    var newMetadata = {
+    customMetadata: {
+    'domain' : 'devvret@google.com'
+      }
+    };
+
+      this.storage.refFromURL(imageUri).updateMetadata(newMetadata).then(function(metadata) {
+    // Updated metadata for 'images/forest.jpg' is returned in the Promise
+  }).catch(function(error) {
+  console.log(error);
+  });
+
+    this.storage.refFromURL(imageUri).getMetadata().then(function(metadata){
+      console.log(metadata);
+    }).catch(function(error){
+      console.log(error);
+    });
+
     this.storage.refFromURL(imageUri).getMetadata().then(function(metadata) {
       imgElement.src = metadata.downloadURLs[0];
     });
